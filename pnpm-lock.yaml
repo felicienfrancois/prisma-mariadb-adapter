@@ -13,9 +13,9 @@ devDependencies:
   '@types/node':
     specifier: ^20.11.19
     version: 20.11.19
-  mysql2:
-    specifier: ^3.9.1
-    version: 3.9.1
+  mariadb:
+    specifier: ^3.3.1
+    version: 3.3.1
   tsup:
     specifier: ^8.0.2
     version: 8.0.2(typescript@5.3.3)
@@ -854,7 +854,7 @@ packages:
     resolution: {integrity: sha512-sGkPx+VjMtmA6MX27oA4FBFELFCZZ4S4XqeGOXCv68tT+jb3vk/RyaKWP0PTKyWtmLSM0b+adUTEvbs1PEaH2w==}
     dev: true
 
-  /mysql2@3.9.1:
+  /mariadb@3.9.1:
     resolution: {integrity: sha512-3njoWAAhGBYy0tWBabqUQcLtczZUxrmmtc2vszQUekg3kTJyZ5/IeLC3Fo04u6y6Iy5Sba7pIIa2P/gs8D3ZeQ==}
     engines: {node: '>= 8.0'}
     dependencies:

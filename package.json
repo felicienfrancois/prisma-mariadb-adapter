@@ -1,7 +1,7 @@
 {
-  "name": "@babrasoft/prisma-mysql-adapter",
+  "name": "@felicienfrancois/prisma-mariadb-adapter",
   "version": "1.0.1",
-  "description": "A Prisma driver adapter for MySQL",
+  "description": "A Prisma driver adapter for MariadDB",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
   "types": "dist/index.d.ts",
@@ -15,21 +15,22 @@
   "keywords": [
     "Prisma",
     "MySQL",
+    "MariaDB",
     "Driver",
     "Adapter"
   ],
-  "author": "Federico Babrauskas <fedebabrauskas@gmail.com>",
+  "author": "Félicien François <felicien@tweakstyle.com>",
   "license": "Apache-2.0",
   "dependencies": {
     "@prisma/driver-adapter-utils": "^5.10.1"
   },
   "devDependencies": {
     "@types/node": "^20.11.19",
-    "mysql2": "^3.9.1",
+    "mariadb": "^3.3.1",
     "tsup": "^8.0.2",
     "typescript": "^5.3.3"
   },
   "peerDependencies": {
-    "mysql2": "^3.9.1"
+    "mariadb": "^3.3.1"
   }
 }

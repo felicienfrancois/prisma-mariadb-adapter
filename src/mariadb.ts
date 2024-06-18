@@ -11,20 +11,20 @@ import type {
 } from "@prisma/driver-adapter-utils";
 import { Debug, err, ok } from "@prisma/driver-adapter-utils";
 import {
-  type FieldPacket,
+  type FieldInfo,
   type Pool,
   type PoolConnection,
   type QueryOptions,
-  type ResultSetHeader,
-  type RowDataPacket,
-} from "mysql2/promise";
+  type UpsertResult,
+} from "mariadb";
+
 import { UnsupportedNativeDataType, fieldToColumnType, typeCast } from "./conversion";
 
-const debug = Debug("prisma:driver-adapter:mysql");
+const debug = Debug("prisma:driver-adapter:mariadb");
 
 type QueryResult<T> = {
   data: T;
-  fields: FieldPacket[];
+  fields: FieldInfo[];
 };
 
 type MySqlError = Error & {
@@ -33,7 +33,7 @@ type MySqlError = Error & {
 };
 
 class MySqlQueryable<ClientT extends Pool | PoolConnection> implements Queryable {
-  readonly provider = "mysql";
+  readonly provider = "mariadb";
 
   constructor(protected readonly client: ClientT) {}
 
@@ -88,7 +88,7 @@ class MySqlQueryable<ClientT extends Pool | PoolConnection> implements Queryable
     const tag = "[js::execute_raw]";
     debug(`${tag} %O`, query);
 
-    const res = await this.performIO<ResultSetHeader>({ sql: query.sql, values: query.args });
+    const res = await this.performIO<UpsertResult>({ sql: query.sql, values: query.args });
 
     if (!res.ok) {
       return err(res.error);
@@ -102,12 +102,12 @@ class MySqlQueryable<ClientT extends Pool | PoolConnection> implements Queryable
    * Should the query fail due to a connection error, the connection is
    * marked as unhealthy.
    */
-  private async performIO<T extends ResultSetHeader | RowDataPacket[][]>(
+  private async performIO<T extends UpsertResult | Record<string|number, any>[][]>(
     options: QueryOptions,
   ): Promise<Result<QueryResult<T>>> {
     try {
-      const [data, fields = []] = await this.client.query<T>(options);
-      return ok({ data, fields });
+      const data = await this.client.query<T>(options);
+      return ok({ data, fields: [] });
     } catch (e) {
       const error = e as MySqlError;
       debug("Error in performIO: %O", error);
@@ -144,12 +144,12 @@ class MySqlTransaction extends MySqlQueryable<PoolConnection> implements Transac
   }
 }
 
-export type PrismaMySqlOptions = {
+export type PrismaMariaDBOptions = {
   schema?: string;
 };
 
-export class PrismaMySql extends MySqlQueryable<Pool> implements DriverAdapter {
-  constructor(client: Pool, private options?: PrismaMySqlOptions) {
+export class PrismaMariaDB extends MySqlQueryable<Pool> implements DriverAdapter {
+  constructor(client: Pool, private options?: PrismaMariaDBOptions) {
     super(client);
   }
 

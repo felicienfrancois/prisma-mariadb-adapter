@@ -1,1 +1,1 @@
-export { PrismaMySql } from "./mysql";
+export { PrismaMariaDB } from "./mariadb";

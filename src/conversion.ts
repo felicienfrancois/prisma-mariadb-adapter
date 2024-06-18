@@ -1,5 +1,5 @@
 import { ColumnTypeEnum, type ColumnType } from "@prisma/driver-adapter-utils";
-import type { FieldPacket, QueryOptions } from "mysql2";
+import type { FieldInfo, QueryOptions } from "mariadb";
 
 const MySqlCodes: Record<number, string> = {
   0x00: "DECIMAL",
@@ -103,14 +103,14 @@ export const typeCast: TypeCast = (field, next) => {
 export class UnsupportedNativeDataType extends Error {
   type: string;
 
-  constructor(field: FieldPacket) {
+  constructor(field: FieldInfo) {
     super();
     this.type = (field.columnType && MySqlCodes[field.columnType]) || "Unknown";
     this.message = `Unsupported native data type: ${this.type}`;
   }
 }
 
-export function fieldToColumnType(field: FieldPacket): ColumnType {
+export function fieldToColumnType(field: FieldInfo): ColumnType {
   if (isReal(field)) return ColumnTypeEnum.Numeric;
   if (isFloat(field)) return ColumnTypeEnum.Float;
   if (isDouble(field)) return ColumnTypeEnum.Double;
@@ -128,19 +128,19 @@ export function fieldToColumnType(field: FieldPacket): ColumnType {
   throw new UnsupportedNativeDataType(field);
 }
 
-function isReal(field: FieldPacket) {
+function isReal(field: FieldInfo) {
   return field.columnType === MySqlTypes.DECIMAL || field.columnType === MySqlTypes.NEWDECIMAL;
 }
 
-function isFloat(field: FieldPacket) {
+function isFloat(field: FieldInfo) {
   return field.columnType === MySqlTypes.FLOAT;
 }
 
-function isDouble(field: FieldPacket) {
+function isDouble(field: FieldInfo) {
   return field.columnType === MySqlTypes.DOUBLE;
 }
 
-function isInt32(field: FieldPacket) {
+function isInt32(field: FieldInfo) {
   return (
     field.columnType === MySqlTypes.TINY ||
     field.columnType === MySqlTypes.SHORT ||
@@ -150,7 +150,7 @@ function isInt32(field: FieldPacket) {
   );
 }
 
-function isInt64(field: FieldPacket) {
+function isInt64(field: FieldInfo) {
   return (
     field.columnType === MySqlTypes.LONGLONG ||
     (field.columnType === MySqlTypes.LONG && hasFlag(field.flags, MySqlFlags.UNSIGNED)) ||
@@ -158,58 +158,58 @@ function isInt64(field: FieldPacket) {
   );
 }
 
-function isDateTime(field: FieldPacket) {
+function isDateTime(field: FieldInfo) {
   // TODO: Add TIMESTAMP2 and DATETIME2?
   return field.columnType === MySqlTypes.TIMESTAMP || field.columnType === MySqlTypes.DATETIME;
 }
 
-function isTime(field: FieldPacket) {
+function isTime(field: FieldInfo) {
   // TODO: Add TIME2?
   return field.columnType === MySqlTypes.TIME;
 }
 
-function isDate(field: FieldPacket) {
+function isDate(field: FieldInfo) {
   return field.columnType === MySqlTypes.DATE || field.columnType === MySqlTypes.NEWDATE;
 }
 
-function isText(field: FieldPacket) {
+function isText(field: FieldInfo) {
   return (
     field.columnType === MySqlTypes.VARCHAR ||
     field.columnType === MySqlTypes.VAR_STRING ||
     field.columnType === MySqlTypes.STRING ||
-    (field.columnType === MySqlTypes.TINY_BLOB && field.characterSet !== 63) ||
-    (field.columnType === MySqlTypes.MEDIUM_BLOB && field.characterSet !== 63) ||
-    (field.columnType === MySqlTypes.LONG_BLOB && field.characterSet !== 63) ||
-    (field.columnType === MySqlTypes.BLOB && field.characterSet !== 63)
+    (field.columnType === MySqlTypes.TINY_BLOB && field.collation.index !== 63) ||
+    (field.columnType === MySqlTypes.MEDIUM_BLOB && field.collation.index !== 63) ||
+    (field.columnType === MySqlTypes.LONG_BLOB && field.collation.index !== 63) ||
+    (field.columnType === MySqlTypes.BLOB && field.collation.index !== 63)
   );
 }
 
-function isBytes(field: FieldPacket) {
+function isBytes(field: FieldInfo) {
   return (
-    (field.columnType === MySqlTypes.TINY_BLOB && field.characterSet === 63) ||
-    (field.columnType === MySqlTypes.MEDIUM_BLOB && field.characterSet === 63) ||
-    (field.columnType === MySqlTypes.LONG_BLOB && field.characterSet === 63) ||
-    (field.columnType === MySqlTypes.BLOB && field.characterSet === 63) ||
+    (field.columnType === MySqlTypes.TINY_BLOB && field.collation.index === 63) ||
+    (field.columnType === MySqlTypes.MEDIUM_BLOB && field.collation.index === 63) ||
+    (field.columnType === MySqlTypes.LONG_BLOB && field.collation.index === 63) ||
+    (field.columnType === MySqlTypes.BLOB && field.collation.index === 63) ||
     (field.columnType === MySqlTypes.BIT && field.columnLength && field.columnLength > 1)
   );
 }
 
-function isBool(field: FieldPacket) {
+function isBool(field: FieldInfo) {
   return field.columnType === MySqlTypes.BIT && field.columnLength === 1;
 }
 
-function isJson(field: FieldPacket) {
+function isJson(field: FieldInfo) {
   return field.columnType === MySqlTypes.JSON;
 }
 
-function isEnum(field: FieldPacket) {
+function isEnum(field: FieldInfo) {
   return field.columnType === MySqlTypes.ENUM || hasFlag(field.flags, MySqlFlags.ENUM);
 }
 
-function isNull(field: FieldPacket) {
+function isNull(field: FieldInfo) {
   return field.columnType === MySqlTypes.NULL;
 }
 
-function hasFlag(flags: FieldPacket["flags"], target: number) {
+function hasFlag(flags: FieldInfo["flags"], target: number) {
   return (flags as number) & target;
 }
